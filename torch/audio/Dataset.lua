@@ -6,9 +6,12 @@
 require 'nn'
 local Dataset = torch.class('nn.DeepSpeechDataset')
 
-Dataset.uttLengths = { 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500 }
-Dataset.counts = { 3, 10, 11, 13, 14, 13, 9, 8, 5, 4, 3, 2, 2, 2, 1 }
-Dataset.label_lengths = { 7, 17, 35, 48, 62, 78, 93, 107, 120, 134, 148, 163, 178, 193, 209 }
+--Dataset.uttLengths = { 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500 }
+--Dataset.counts = { 3, 10, 11, 13, 14, 13, 9, 8, 5, 4, 3, 2, 2, 2, 1 }
+--Dataset.label_lengths = { 7, 17, 35, 48, 62, 78, 93, 107, 120, 134, 148, 163, 178, 193, 209 }
+Dataset.uttLengths = { 3000 }
+Dataset.counts = { 100 }
+Dataset.label_lengths = { 418 }
 
 Dataset.freqBins = 13
 
