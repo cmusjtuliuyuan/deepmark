@@ -34,7 +34,6 @@ print('Running on device: ' .. cutorch.getDeviceProperties(cutorch.getDevice()).
 local steps = opt.steps -- nb of steps in loop to average perf
 local nDryRuns = opt.dryrun
 local batchSize = opt.batchSize
-spectrogramSize = 161
 criterion = nn.CTCCriterion():cuda()
 local dataset = nn.DeepSpeechDataset(batchSize)
 collectgarbage()
@@ -42,7 +41,7 @@ local model, model_name, calculateInputSizes = deepSpeech(batchSize, dataset.fre
   
 local inputs = torch.CudaTensor() -- buffer for inputs
 local sizes, input, targets = dataset:nextTorchSet()
-input=input:view(opt.batchSize,1,spectrogramSize, -1)
+input=input:view(opt.batchSize,1,dataset.freqBins, -1)
 
 model = model:cuda()
 inputs:resize(input:size()):copy(input)
@@ -68,7 +67,7 @@ for t = 1, steps do
     local numberOfIterations = 0
     local sizes, input, targets = dataset:nextTorchSet()
     while (sizes ~= nil) do
-        input=input:view(opt.batchSize,1,spectrogramSize, -1)
+        input=input:view(opt.batchSize,1,dataset.freqBins, -1)
         inputs:resize(input:size()):copy(input)        
         sys.tic()
         -- Forward through model and then criterion.

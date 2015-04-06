@@ -12,10 +12,10 @@ local function cudnnDeepSpeech2(miniBatchSize, freqBins, nGPUs, useOptnet)
     model:add(cudnn.SpatialBatchNormalization(1152))
     model:add(cudnn.ClippedReLU(20, true))
 
-    model:add(nn.View(1152*((161-13)/1+1), -1):setNumInputDims(3)) -- batch x features x seqLength
+    model:add(nn.View(1152*((freqBins-13)/1+1), -1):setNumInputDims(3)) -- batch x features x seqLength
     model:add(nn.Transpose({ 2, 3 }, { 1, 2 })) -- seqLength x batch x features
 
-    model:add(cudnn.BatchBRNNReLU(1152*((161-13)/1+1), 1152))
+    model:add(cudnn.BatchBRNNReLU(1152*((freqBins-13)/1+1), 1152))
     model:add(cudnn.BatchBRNNReLU(1152, 1152))
     model:add(cudnn.BatchBRNNReLU(1152, 1152))
     model:add(cudnn.BatchBRNNReLU(1152, 1152))
