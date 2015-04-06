@@ -20,7 +20,7 @@ end
 local opt = pl.lapp[[
    --dryrun  (default 10) number of iterations of a dry run not counted towards final timing
    --nGPU (default 1) number of GPUs to run on
-   --batchSize (default 64) batch size
+   --batchSize (default 32) batch size
    --steps (default 1) number of steps to average performance
    --useOptnet (default true) whether to use optnet package for memory optimization
 ]]
