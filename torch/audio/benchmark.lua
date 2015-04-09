@@ -67,7 +67,7 @@ for t = 1, steps do
         sys.tic()
         model:zeroGradParameters()
         local gradOutput = criterion:backward(predictions, targets)
-        model:backward(inputs, gradOutput)
+        model:backward(inputs, gradOutput:double())
         tmbi = tmbi + sys.toc()
 --        collectgarbage()
         sizes, input, targets = dataset:nextTorchSet()
