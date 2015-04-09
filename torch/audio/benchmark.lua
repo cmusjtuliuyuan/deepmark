@@ -1,21 +1,12 @@
 require 'sys'
 require 'Dataset'
-require 'cutorch'
-require 'cunn'
-require 'nnx'
 require 'nn'
+require 'nnx'
 local pl = require('pl.import_into')()
-
-
-
-local function printMemory()
-    local freeMemory, totalMemory = cutorch.getMemoryUsage()
-    print("total Memory", totalMemory, "free Memory", freeMemory, "used", totalMemory-freeMemory)
-end
 
 local opt = pl.lapp[[
    --dryrun  (default 10) number of iterations of a dry run not counted towards final timing
-   --nGPU (default 1) number of GPUs to run on
+   --nGPU (default 0) number of GPUs to run on
    --batchSize (default 32) batch size
    --steps (default 1) number of steps to average performance
    --useOptnet (default true) whether to use optnet package for memory optimization
@@ -25,15 +16,13 @@ local nGPU = opt.nGPU
 
 deepSpeech = require 'cudnn_deepspeech2'
 
-print('Running on device: ' .. cutorch.getDeviceProperties(cutorch.getDevice()).name)
 
 local steps = opt.steps -- nb of steps in loop to average perf
 local nDryRuns = opt.dryrun
 local batchSize = opt.batchSize
-criterion = nn.CTCCriterion()
+criterion = nn.CTCCriterion(true)
 local dataset = nn.DeepSpeechDataset(batchSize)
-collectgarbage()
-local model, model_name, calculateInputSizes = deepSpeech(batchSize, dataset.freqBins, nGPU, opt.useOptnet)
+local model = deepSpeech(batchSize, dataset.freqBins, nGPU, opt.useOptnet)
   
 local inputs = torch.Tensor()
 local sizes, input, targets = dataset:nextTorchSet()
@@ -42,15 +31,13 @@ input=input:view(opt.batchSize,1,dataset.freqBins, -1)
 model = model
 inputs:resize(input:size()):copy(input)
 
-print('ModelType: ' .. model_name, 'Kernels: ' .. 'cuDNN')
+print('ModelType: deepspeech')
 
 for i = 1, nDryRuns do
     model:zeroGradParameters()
     local output = model:updateOutput(inputs)
     local gradInput = model:updateGradInput(inputs, output)
     model:accGradParameters(inputs, output)
-    cutorch.synchronize()
-    collectgarbage()
 end
 
 local tmfAvg, tmbiAvg, tRoundTripAvg = 0,0,0,0
@@ -68,15 +55,13 @@ for t = 1, steps do
         sys.tic()
         -- Forward through model and then criterion.
         local output = model:updateOutput(inputs)
-        loss = criterion:updateOutput(output, targets, calculateInputSizes(sizes))
-        cutorch.synchronize()
+        loss = criterion:updateOutput(output, targets, 1)
         tmf = tmf + sys.toc()
 
         -- Backwards (updateGradInput, accGradParameters) including the criterion.
         sys.tic()
         grads = criterion:updateGradInput(output, targets)
         model:backward(inputs,output)
-        cutorch.synchronize()
         tmbi = tmbi + sys.toc()
 --        collectgarbage()
         sizes, input, targets = dataset:nextTorchSet()

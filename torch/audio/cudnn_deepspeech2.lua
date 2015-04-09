@@ -1,11 +1,4 @@
 -- Based on convolution kernel and strides.
-local function calculateInputSizes(sizes)
-    sizes = torch.floor((sizes - 20) / 2 + 1) -- conv1
-    sizes = torch.floor((sizes - 10) / 2 + 1) -- conv2
-    return sizes
-end
-
-
 local function RNNModule(inputDim, hiddenDim)
     require 'rnn'
     return nn.SeqBRNN(inputDim, hiddenDim)
@@ -40,7 +33,7 @@ local function cudnnDeepSpeech2(miniBatchSize, freqBins, nGPUs, useOptnet)
     model:add(rnns)
     model:add(nn.Bottle(fullyConnected, 2))
     model:add(nn.Transpose({1, 2})) -- batch x seqLength x features
-    return model, 'cudnnDeepSpeech2', calculateInputSizes
+    return model
 end
 
 return cudnnDeepSpeech2
