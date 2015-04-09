@@ -1,5 +1,9 @@
 require 'sys'
 require 'Dataset'
+require 'cutorch'
+require 'cunn'
+require 'nnx'
+require 'nn'
 local pl = require('pl.import_into')()
 
 
@@ -31,7 +35,7 @@ local dataset = nn.DeepSpeechDataset(batchSize)
 collectgarbage()
 local model, model_name, calculateInputSizes = deepSpeech(batchSize, dataset.freqBins, nGPU, opt.useOptnet)
   
-local inputs = torch.Tensor() -- buffer for inputs
+local inputs = torch.Tensor()
 local sizes, input, targets = dataset:nextTorchSet()
 input=input:view(opt.batchSize,1,dataset.freqBins, -1)
 
