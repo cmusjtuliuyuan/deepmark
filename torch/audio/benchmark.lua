@@ -1,16 +1,8 @@
 require 'sys'
-require 'cunn'
-require 'cudnn'
-require 'nnx'
-require 'BatchBRNNReLU'
 require 'Dataset'
 local pl = require('pl.import_into')()
 
 
-
-cudnn.fastest = true
-cudnn.benchmark = false -- set this false due to the varying input shape
-cudnn.verbose = false
 
 local function printMemory()
     local freeMemory, totalMemory = cutorch.getMemoryUsage()
@@ -34,16 +26,16 @@ print('Running on device: ' .. cutorch.getDeviceProperties(cutorch.getDevice()).
 local steps = opt.steps -- nb of steps in loop to average perf
 local nDryRuns = opt.dryrun
 local batchSize = opt.batchSize
-criterion = nn.CTCCriterion():cuda()
+criterion = nn.CTCCriterion()
 local dataset = nn.DeepSpeechDataset(batchSize)
 collectgarbage()
 local model, model_name, calculateInputSizes = deepSpeech(batchSize, dataset.freqBins, nGPU, opt.useOptnet)
   
-local inputs = torch.CudaTensor() -- buffer for inputs
+local inputs = torch.Tensor() -- buffer for inputs
 local sizes, input, targets = dataset:nextTorchSet()
 input=input:view(opt.batchSize,1,dataset.freqBins, -1)
 
-model = model:cuda()
+model = model
 inputs:resize(input:size()):copy(input)
 
 print('ModelType: ' .. model_name, 'Kernels: ' .. 'cuDNN')
