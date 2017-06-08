@@ -14,6 +14,11 @@ local opt = pl.lapp[[
 
 local nGPU = opt.nGPU
 
+local function calculateInputSizes(sizes)
+    sizes = torch.floor((sizes - 11) / 3 + 1) -- conv1
+    return sizes
+end
+
 deepSpeech = require 'cudnn_deepspeech2'
 
 
@@ -54,14 +59,15 @@ for t = 1, steps do
         inputs:resize(input:size()):copy(input)        
         sys.tic()
         -- Forward through model and then criterion.
-        local output = model:updateOutput(inputs)
-        loss = criterion:updateOutput(output, targets, 1)
+        local predictions = model:forward(inputs)
+        local loss = criterion:forward(predictions, targets, calculateInputSizes(sizes))
         tmf = tmf + sys.toc()
 
         -- Backwards (updateGradInput, accGradParameters) including the criterion.
         sys.tic()
-        grads = criterion:updateGradInput(output, targets)
-        model:backward(inputs,output)
+        model:zeroGradParameters()
+        local gradOutput = criterion:backward(predictions, targets)
+        model:backward(inputs, gradOutput)
         tmbi = tmbi + sys.toc()
 --        collectgarbage()
         sizes, input, targets = dataset:nextTorchSet()
